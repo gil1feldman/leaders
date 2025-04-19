@@ -8,19 +8,17 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: Arial, sans-serif;
       direction: rtl;
-      padding: 30px;
+      padding: 20px;
       max-width: 900px;
       margin: auto;
     }
 
-    h2 {
+    h2, h3 {
       text-align: center;
     }
 
@@ -57,6 +55,18 @@
       width: 100%;
     }
 
+    .leader-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background-color: #f9f9f9;
+    }
+
+    .leader-card h4 {
+      margin-top: 0;
+    }
+
     .table-container, .chart-container {
       overflow-x: auto;
       margin-top: 20px;
@@ -85,242 +95,244 @@
 
     @media (max-width: 600px) {
       body {
-        padding: 15px;
+        padding: 10px;
         font-size: 14px;
       }
       button {
         font-size: 14px;
-      }
-      h2, h3, h4 {
-        font-size: 18px;
       }
     }
   </style>
 </head>
 <body>
 
-  <h2>מנהיגים ותכונות</h2>
+<h2>מנהיגים ותכונות</h2>
 
-  <!-- שלב 1 -->
-  <div id="step1" class="step active">
-    <h3>שלב 1: בחר 5 אנשים להנהגה הפוליטית</h3>
-    <div id="leaderInputs">
-      <div class="form-group"><input type="text" placeholder="שם 1" required></div>
-      <div class="form-group"><input type="text" placeholder="שם 2" required></div>
-      <div class="form-group"><input type="text" placeholder="שם 3" required></div>
-      <div class="form-group"><input type="text" placeholder="שם 4" required></div>
-      <div class="form-group"><input type="text" placeholder="שם 5" required></div>
-    </div>
-    <button onclick="goToStep2()">המשך לשלב הבא</button>
+<!-- שלב 1 -->
+<div id="step1" class="step active">
+  <h3>שלב 1: בחר 5 אנשים</h3>
+  <div id="leaderInputs">
+    <div class="form-group"><input type="text" placeholder="שם 1" required></div>
+    <div class="form-group"><input type="text" placeholder="שם 2" required></div>
+    <div class="form-group"><input type="text" placeholder="שם 3" required></div>
+    <div class="form-group"><input type="text" placeholder="שם 4" required></div>
+    <div class="form-group"><input type="text" placeholder="שם 5" required></div>
   </div>
+  <button onclick="goToStep2()">המשך לשלב הבא</button>
+</div>
 
-  <!-- שלב 2 -->
-  <div id="step2" class="step">
-    <h3>שלב 2: ציין 5 תכונות חשובות למנהיג</h3>
-    <div id="traitInputs">
-      <div class="form-group"><input type="text" placeholder="תכונה 1" required></div>
-      <div class="form-group"><input type="text" placeholder="תכונה 2" required></div>
-      <div class="form-group"><input type="text" placeholder="תכונה 3" required></div>
-      <div class="form-group"><input type="text" placeholder="תכונה 4" required></div>
-      <div class="form-group"><input type="text" placeholder="תכונה 5" required></div>
-    </div>
-    <button onclick="goToStep3()">המשך לדירוג</button>
+<!-- שלב 2 -->
+<div id="step2" class="step">
+  <h3>שלב 2: ציין 5 תכונות</h3>
+  <div id="traitInputs">
+    <div class="form-group"><input type="text" placeholder="תכונה 1" required></div>
+    <div class="form-group"><input type="text" placeholder="תכונה 2" required></div>
+    <div class="form-group"><input type="text" placeholder="תכונה 3" required></div>
+    <div class="form-group"><input type="text" placeholder="תכונה 4" required></div>
+    <div class="form-group"><input type="text" placeholder="תכונה 5" required></div>
   </div>
+  <button onclick="goToStep3()">המשך לדירוג</button>
+</div>
 
-  <!-- שלב 3 -->
-  <div id="step3" class="step">
-    <h3>שלב 3: דרג כל מנהיג לפי כל תכונה (1–10)</h3>
-    <div class="table-container" id="ratingTableContainer"></div>
-    <button onclick="showSummary()">סיום והצג סיכום</button>
-  </div>
+<!-- שלב 3 -->
+<div id="step3" class="step">
+  <h3>שלב 3: דרג כל מנהיג לפי כל תכונה (1–10)</h3>
+  <div id="ratingCardsContainer"></div>
+  <button onclick="showSummary()">סיום והצג סיכום</button>
+</div>
 
-  <!-- שלב 4 -->
-  <div id="step4" class="step">
-    <h3>סיכום הדירוגים שלך</h3>
-    <div class="table-container" id="summary"></div>
-    <button onclick="exportAsImage()">שמור כתמונה</button>
-  </div>
+<!-- שלב 4 -->
+<div id="step4" class="step">
+  <h3>סיכום הדירוגים שלך</h3>
+  <div class="table-container" id="summary"></div>
+  <button onclick="exportAsImage()">שמור כתמונה</button>
+</div>
 
-  <script>
-    let leaders = [];
-    let traits = [];
+<script>
+let leaders = [];
+let traits = [];
 
-    function showStep(num) {
-      document.querySelectorAll('.step').forEach((el, i) => {
-        el.classList.toggle('active', i === num - 1);
-      });
+function showStep(num) {
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.toggle('active', i === num - 1);
+  });
+}
+
+function goToStep2() {
+  const inputs = document.querySelectorAll('#leaderInputs input');
+  leaders = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+  if (leaders.length !== 5) {
+    alert("נא להזין בדיוק 5 שמות.");
+    return;
+  }
+  showStep(2);
+}
+
+function goToStep3() {
+  const inputs = document.querySelectorAll('#traitInputs input');
+  traits = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+  if (traits.length !== 5) {
+    alert("נא להזין בדיוק 5 תכונות.");
+    return;
+  }
+
+  const container = document.getElementById('ratingCardsContainer');
+  container.innerHTML = '';
+  leaders.forEach((leader, i) => {
+    const card = document.createElement('div');
+    card.className = 'leader-card';
+    card.innerHTML = `<h4>${leader}</h4>`;
+    traits.forEach((trait, j) => {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 1;
+      input.max = 10;
+      input.required = true;
+      input.placeholder = `${trait} (1–10)`;
+      input.style.marginBottom = '10px';
+      card.appendChild(input);
+    });
+    container.appendChild(card);
+  });
+
+  showStep(3);
+}
+
+function showSummary() {
+  const inputs = document.querySelectorAll('#ratingCardsContainer input');
+  const values = Array.from(inputs).map(input => parseFloat(input.value.trim()));
+  let hasError = false;
+
+  inputs.forEach(input => input.classList.remove('invalid'));
+  values.forEach((val, i) => {
+    if (isNaN(val) || val < 1 || val > 10) {
+      inputs[i].classList.add('invalid');
+      hasError = true;
     }
+  });
 
-    function goToStep2() {
-      const inputs = document.querySelectorAll('#leaderInputs input');
-      leaders = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
-      if (leaders.length !== 5) {
-        alert("נא להזין בדיוק 5 שמות.");
-        return;
-      }
-      showStep(2);
+  if (hasError) {
+    alert("יש להזין ציונים בין 1 ל-10 בכל שדה.");
+    return;
+  }
+
+  const scoresMatrix = [];
+  let summaryHTML = `<table><thead><tr><th>שם \\ תכונה</th>`;
+  traits.forEach(trait => summaryHTML += `<th>${trait}</th>`);
+  summaryHTML += `<th>ממוצע</th></tr></thead><tbody>`;
+
+  leaders.forEach((leader, i) => {
+    let rowHTML = `<tr><td>${leader}</td>`;
+    const rowScores = [];
+    for (let j = 0; j < traits.length; j++) {
+      const idx = i * traits.length + j;
+      const val = parseFloat(inputs[idx].value.trim());
+      rowScores.push(val);
+      rowHTML += `<td>${val}</td>`;
     }
+    const avg = (rowScores.reduce((a, b) => a + b, 0) / rowScores.length).toFixed(2);
+    rowHTML += `<td><strong>${avg}</strong></td></tr>`;
+    summaryHTML += rowHTML;
+    scoresMatrix.push({ leader, rowScores, avg: parseFloat(avg) });
+  });
 
-    function goToStep3() {
-      const inputs = document.querySelectorAll('#traitInputs input');
-      traits = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
-      if (traits.length !== 5) {
-        alert("נא להזין בדיוק 5 תכונות.");
-        return;
-      }
+  summaryHTML += `</tbody></table>`;
+  summaryHTML += `<h3>גרף ממוצע ציונים:</h3><div class="chart-container"><canvas id="leaderAvgChart" height="100"></canvas></div>`;
+  summaryHTML += `<div id="traitChartsContainer"></div>`;
 
-      const container = document.getElementById('ratingTableContainer');
-      let table = `<table><thead><tr><th>שם \\ תכונה</th>`;
-      traits.forEach(trait => table += `<th>${trait}</th>`);
-      table += `</tr></thead><tbody>`;
-      leaders.forEach((leader, i) => {
-        table += `<tr><td>${leader}</td>`;
-        traits.forEach(() => {
-          table += `<td><input type="number" min="1" max="10" required style="width: 60px;"></td>`;
-        });
-        table += `</tr>`;
-      });
-      table += `</tbody></table>`;
-      container.innerHTML = table;
+  document.getElementById('summary').innerHTML = summaryHTML;
+  showStep(4);
 
-      showStep(3);
-    }
-
-    function showSummary() {
-      const inputs = document.querySelectorAll('#ratingTableContainer input');
-      const values = Array.from(inputs).map(input => parseFloat(input.value.trim()));
-      let hasError = false;
-
-      inputs.forEach(input => input.classList.remove('invalid'));
-      values.forEach((val, i) => {
-        if (isNaN(val) || val < 1 || val > 10) {
-          inputs[i].classList.add('invalid');
-          hasError = true;
+  const ctx = document.getElementById('leaderAvgChart').getContext('2d');
+  const sortedScores = [...scoresMatrix].sort((a, b) => b.avg - a.avg);
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sortedScores.map(s => s.leader),
+      datasets: [{
+        label: 'ממוצע ציונים',
+        data: sortedScores.map(s => s.avg),
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'right',
+          color: '#000',
+          font: { weight: 'bold' },
+          formatter: value => value.toFixed(1)
         }
-      });
-
-      if (hasError) {
-        alert("יש להזין רק ציונים מספריים בין 1 ל-10.");
-        return;
+      },
+      scales: {
+        x: { min: 0, max: 10 }
       }
+    },
+    plugins: [ChartDataLabels]
+  });
 
-      const scoresMatrix = [];
-      let summaryHTML = `<table><thead><tr><th>שם \\ תכונה</th>`;
-      traits.forEach(trait => summaryHTML += `<th>${trait}</th>`);
-      summaryHTML += `<th>ממוצע</th></tr></thead><tbody>`;
+  const traitChartsDiv = document.getElementById('traitChartsContainer');
+  traitChartsDiv.innerHTML = '';
+  traits.forEach((trait, j) => {
+    const traitData = scoresMatrix.map(item => ({
+      leader: item.leader,
+      score: item.rowScores[j]
+    })).sort((a, b) => b.score - a.score);
 
-      leaders.forEach((leader, i) => {
-        let rowHTML = `<tr><td>${leader}</td>`;
-        const rowScores = [];
-        for (let j = 0; j < traits.length; j++) {
-          const idx = i * traits.length + j;
-          const val = parseFloat(inputs[idx].value.trim());
-          rowScores.push(val);
-          rowHTML += `<td>${val}</td>`;
-        }
-        const avg = (rowScores.reduce((a, b) => a + b, 0) / rowScores.length).toFixed(2);
-        rowHTML += `<td><strong>${avg}</strong></td></tr>`;
-        summaryHTML += rowHTML;
-        scoresMatrix.push({ leader, rowScores, avg: parseFloat(avg) });
-      });
+    const canvas = document.createElement('canvas');
+    canvas.height = 100;
+    const title = document.createElement('h4');
+    title.textContent = `דירוג לפי: ${trait}`;
+    traitChartsDiv.appendChild(title);
+    traitChartsDiv.appendChild(canvas);
 
-      summaryHTML += `</tbody></table>`;
-      summaryHTML += `<h3>גרף ממוצע ציונים:</h3><div class="chart-container"><canvas id="leaderAvgChart" height="100"></canvas></div>`;
-      summaryHTML += `<div id="traitChartsContainer"></div>`;
-
-      document.getElementById('summary').innerHTML = summaryHTML;
-      showStep(4);
-
-      const ctx = document.getElementById('leaderAvgChart').getContext('2d');
-      const sortedScores = [...scoresMatrix].sort((a, b) => b.avg - a.avg);
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: sortedScores.map(s => s.leader),
-          datasets: [{
-            label: 'ממוצע ציונים',
-            data: sortedScores.map(s => s.avg),
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          plugins: {
-            legend: { display: false },
-            datalabels: {
-              anchor: 'end',
-              align: 'right',
-              color: '#000',
-              font: { weight: 'bold' },
-              formatter: value => value.toFixed(1)
-            }
-          },
-          scales: {
-            x: { min: 0, max: 10 }
+    new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: traitData.map(d => d.leader),
+        datasets: [{
+          label: trait,
+          data: traitData.map(d => d.score),
+          backgroundColor: 'rgba(255, 159, 64, 0.6)',
+          borderColor: 'rgba(255, 159, 64, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            anchor: 'end',
+            align: 'right',
+            color: '#000',
+            font: { weight: 'bold' },
+            formatter: value => value.toFixed(1)
           }
         },
-        plugins: [ChartDataLabels]
-      });
+        scales: {
+          x: { min: 0, max: 10 }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  });
+}
 
-      const traitChartsDiv = document.getElementById('traitChartsContainer');
-      traitChartsDiv.innerHTML = '';
-      traits.forEach((trait, j) => {
-        const traitData = scoresMatrix.map(item => ({
-          leader: item.leader,
-          score: item.rowScores[j]
-        })).sort((a, b) => b.score - a.score);
-
-        const canvas = document.createElement('canvas');
-        canvas.height = 100;
-        const title = document.createElement('h4');
-        title.textContent = `דירוג לפי: ${trait}`;
-        traitChartsDiv.appendChild(title);
-        traitChartsDiv.appendChild(canvas);
-
-        new Chart(canvas.getContext('2d'), {
-          type: 'bar',
-          data: {
-            labels: traitData.map(d => d.leader),
-            datasets: [{
-              label: trait,
-              data: traitData.map(d => d.score),
-              backgroundColor: 'rgba(255, 159, 64, 0.6)',
-              borderColor: 'rgba(255, 159, 64, 1)',
-              borderWidth: 1
-            }]
-          },
-          options: {
-            indexAxis: 'y',
-            plugins: {
-              legend: { display: false },
-              datalabels: {
-                anchor: 'end',
-                align: 'right',
-                color: '#000',
-                font: { weight: 'bold' },
-                formatter: value => value.toFixed(1)
-              }
-            },
-            scales: {
-              x: { min: 0, max: 10 }
-            }
-          },
-          plugins: [ChartDataLabels]
-        });
-      });
-    }
-
-    function exportAsImage() {
-      html2canvas(document.getElementById('summary')).then(canvas => {
-        const img = canvas.toDataURL();
-        const link = document.createElement('a');
-        link.download = 'summary.png';
-        link.href = img;
-        link.click();
-      });
-    }
-  </script>
+function exportAsImage() {
+  html2canvas(document.getElementById('summary')).then(canvas => {
+    const img = canvas.toDataURL();
+    const link = document.createElement('a');
+    link.download = 'summary.png';
+    link.href = img;
+    link.click();
+  });
+}
+</script>
 </body>
 </html>
