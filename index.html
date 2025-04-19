@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>מנהיגים ותכונות</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
@@ -101,10 +102,7 @@
   <!-- שלב 4 -->
   <div id="step4" class="step">
     <h3>סיכום הדירוגים שלך</h3>
-    <div id="summary">
-      <canvas id="leaderAvgChart" height="100"></canvas>
-      <div id="traitChartsContainer"></div>
-    </div>
+    <div id="summary"></div>
     <button onclick="exportAsImage()">שמור כתמונה</button>
   </div>
 
@@ -171,7 +169,6 @@
         return;
       }
 
-      // טבלת סיכום
       let summaryHTML = `<table><thead><tr><th>שם \\ תכונה</th>`;
       traits.forEach(trait => summaryHTML += `<th>${trait}</th>`);
       summaryHTML += `<th>ממוצע</th></tr></thead><tbody>`;
@@ -194,13 +191,12 @@
       });
 
       summaryHTML += `</tbody></table>`;
+      summaryHTML += `<h3>גרף ממוצע ציונים:</h3><canvas id="leaderAvgChart" height="100"></canvas>`;
+      summaryHTML += `<div id="traitChartsContainer"></div>`;
 
-      document.getElementById('summary').innerHTML = summaryHTML +
-        `<canvas id="leaderAvgChart" height="100"></canvas><div id="traitChartsContainer"></div>`;
-
+      document.getElementById('summary').innerHTML = summaryHTML;
       showStep(4);
 
-      // גרף ממוצעים
       const ctx = document.getElementById('leaderAvgChart').getContext('2d');
       const sortedScores = [...scoresMatrix].sort((a, b) => b.avg - a.avg);
       new Chart(ctx, {
@@ -217,21 +213,26 @@
         },
         options: {
           indexAxis: 'y',
+          plugins: {
+            legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'right',
+              color: '#000',
+              font: { weight: 'bold' },
+              formatter: value => value.toFixed(1)
+            }
+          },
           scales: {
             x: {
               min: 0,
               max: 10
             }
-          },
-          plugins: {
-            legend: {
-              display: false
-            }
           }
-        }
+        },
+        plugins: [ChartDataLabels]
       });
 
-      // גרפים לפי תכונות
       const traitChartsDiv = document.getElementById('traitChartsContainer');
       traitChartsDiv.innerHTML = '';
       traits.forEach((trait, j) => {
@@ -242,8 +243,9 @@
 
         const canvas = document.createElement('canvas');
         canvas.height = 100;
-        traitChartsDiv.appendChild(document.createElement('hr'));
-        traitChartsDiv.appendChild(document.createTextNode(trait));
+        const title = document.createElement('h4');
+        title.textContent = `דירוג לפי: ${trait}`;
+        traitChartsDiv.appendChild(title);
         traitChartsDiv.appendChild(canvas);
 
         new Chart(canvas.getContext('2d'), {
@@ -260,18 +262,24 @@
           },
           options: {
             indexAxis: 'y',
+            plugins: {
+              legend: { display: false },
+              datalabels: {
+                anchor: 'end',
+                align: 'right',
+                color: '#000',
+                font: { weight: 'bold' },
+                formatter: value => value.toFixed(1)
+              }
+            },
             scales: {
               x: {
                 min: 0,
                 max: 10
               }
-            },
-            plugins: {
-              legend: {
-                display: false
-              }
             }
-          }
+          },
+          plugins: [ChartDataLabels]
         });
       });
     }
