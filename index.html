@@ -3,10 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>מנהיגים ותכונות</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       direction: rtl;
@@ -14,27 +19,33 @@
       max-width: 900px;
       margin: auto;
     }
+
     h2 {
       text-align: center;
     }
+
     .step {
       display: none;
     }
+
     .step.active {
       display: block;
     }
+
     .form-group {
       margin-bottom: 15px;
     }
+
     input[type="text"], input[type="number"] {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
-      box-sizing: border-box;
     }
+
     input[type="number"] {
       text-align: center;
     }
+
     button {
       margin-top: 20px;
       padding: 10px 20px;
@@ -43,22 +54,46 @@
       color: white;
       border: none;
       cursor: pointer;
+      width: 100%;
     }
+
+    .table-container, .chart-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      min-width: 600px;
     }
+
     th, td {
       border: 1px solid #ccc;
       text-align: center;
       padding: 8px;
     }
+
     td.invalid {
       background-color: #ffdddd;
     }
+
     canvas {
       margin-top: 20px;
+      max-width: 100%;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 15px;
+        font-size: 14px;
+      }
+      button {
+        font-size: 14px;
+      }
+      h2, h3, h4 {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -68,7 +103,7 @@
 
   <!-- שלב 1 -->
   <div id="step1" class="step active">
-    <h3>שלב 1: אנא בחר את 5 האנשים שהיית רוצה לראות בהנהגה הפוליטית</h3>
+    <h3>שלב 1: בחר 5 אנשים להנהגה הפוליטית</h3>
     <div id="leaderInputs">
       <div class="form-group"><input type="text" placeholder="שם 1" required></div>
       <div class="form-group"><input type="text" placeholder="שם 2" required></div>
@@ -81,7 +116,7 @@
 
   <!-- שלב 2 -->
   <div id="step2" class="step">
-    <h3>שלב 2: אנא ציין 5 תכונות חשובות במיוחד למנהיגות הבאה</h3>
+    <h3>שלב 2: ציין 5 תכונות חשובות למנהיג</h3>
     <div id="traitInputs">
       <div class="form-group"><input type="text" placeholder="תכונה 1" required></div>
       <div class="form-group"><input type="text" placeholder="תכונה 2" required></div>
@@ -94,15 +129,15 @@
 
   <!-- שלב 3 -->
   <div id="step3" class="step">
-    <h3>שלב 3: דרג כל מנהיג לפי כל אחת מהתכונות מ-1 עד 10</h3>
-    <div id="ratingTableContainer"></div>
+    <h3>שלב 3: דרג כל מנהיג לפי כל תכונה (1–10)</h3>
+    <div class="table-container" id="ratingTableContainer"></div>
     <button onclick="showSummary()">סיום והצג סיכום</button>
   </div>
 
   <!-- שלב 4 -->
   <div id="step4" class="step">
     <h3>סיכום הדירוגים שלך</h3>
-    <div id="summary"></div>
+    <div class="table-container" id="summary"></div>
     <button onclick="exportAsImage()">שמור כתמונה</button>
   </div>
 
@@ -169,11 +204,10 @@
         return;
       }
 
+      const scoresMatrix = [];
       let summaryHTML = `<table><thead><tr><th>שם \\ תכונה</th>`;
       traits.forEach(trait => summaryHTML += `<th>${trait}</th>`);
       summaryHTML += `<th>ממוצע</th></tr></thead><tbody>`;
-
-      const scoresMatrix = [];
 
       leaders.forEach((leader, i) => {
         let rowHTML = `<tr><td>${leader}</td>`;
@@ -191,7 +225,7 @@
       });
 
       summaryHTML += `</tbody></table>`;
-      summaryHTML += `<h3>גרף ממוצע ציונים:</h3><canvas id="leaderAvgChart" height="100"></canvas>`;
+      summaryHTML += `<h3>גרף ממוצע ציונים:</h3><div class="chart-container"><canvas id="leaderAvgChart" height="100"></canvas></div>`;
       summaryHTML += `<div id="traitChartsContainer"></div>`;
 
       document.getElementById('summary').innerHTML = summaryHTML;
@@ -224,10 +258,7 @@
             }
           },
           scales: {
-            x: {
-              min: 0,
-              max: 10
-            }
+            x: { min: 0, max: 10 }
           }
         },
         plugins: [ChartDataLabels]
@@ -273,10 +304,7 @@
               }
             },
             scales: {
-              x: {
-                min: 0,
-                max: 10
-              }
+              x: { min: 0, max: 10 }
             }
           },
           plugins: [ChartDataLabels]
@@ -294,6 +322,5 @@
       });
     }
   </script>
-
 </body>
 </html>
