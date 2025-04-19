@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>מנהיגים ותכונות</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -54,6 +56,9 @@
     td.invalid {
       background-color: #ffdddd;
     }
+    canvas {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -96,11 +101,13 @@
   <!-- שלב 4 -->
   <div id="step4" class="step">
     <h3>סיכום הדירוגים שלך</h3>
-    <div id="summary"></div>
+    <div id="summary">
+      <canvas id="leaderAvgChart" height="100"></canvas>
+      <div id="traitChartsContainer"></div>
+    </div>
     <button onclick="exportAsImage()">שמור כתמונה</button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     let leaders = [];
     let traits = [];
@@ -151,9 +158,7 @@
       const values = Array.from(inputs).map(input => parseFloat(input.value.trim()));
       let hasError = false;
 
-      // ניקוי שגיאות קודמות
       inputs.forEach(input => input.classList.remove('invalid'));
-
       values.forEach((val, i) => {
         if (isNaN(val) || val < 1 || val > 10) {
           inputs[i].classList.add('invalid');
@@ -166,7 +171,7 @@
         return;
       }
 
-      // בניית טבלת סיכום עם ממוצעים
+      // טבלת סיכום
       let summaryHTML = `<table><thead><tr><th>שם \\ תכונה</th>`;
       traits.forEach(trait => summaryHTML += `<th>${trait}</th>`);
       summaryHTML += `<th>ממוצע</th></tr></thead><tbody>`;
@@ -190,23 +195,85 @@
 
       summaryHTML += `</tbody></table>`;
 
-      // טבלת דירוג לפי תכונות
-      summaryHTML += `<h4>דירוג מנהיגים לפי תכונות:</h4>`;
-      traits.forEach((trait, j) => {
-        const rankings = leaders.map((leader, i) => ({
-          leader,
-          score: scoresMatrix[i].rowScores[j]
-        })).sort((a, b) => b.score - a.score);
+      document.getElementById('summary').innerHTML = summaryHTML +
+        `<canvas id="leaderAvgChart" height="100"></canvas><div id="traitChartsContainer"></div>`;
 
-        summaryHTML += `<strong>${trait}</strong><ol>`;
-        rankings.forEach(item => {
-          summaryHTML += `<li>${item.leader} — ציון: ${item.score}</li>`;
-        });
-        summaryHTML += `</ol>`;
+      showStep(4);
+
+      // גרף ממוצעים
+      const ctx = document.getElementById('leaderAvgChart').getContext('2d');
+      const sortedScores = [...scoresMatrix].sort((a, b) => b.avg - a.avg);
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: sortedScores.map(s => s.leader),
+          datasets: [{
+            label: 'ממוצע ציונים',
+            data: sortedScores.map(s => s.avg),
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          scales: {
+            x: {
+              min: 0,
+              max: 10
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
       });
 
-      document.getElementById('summary').innerHTML = summaryHTML;
-      showStep(4);
+      // גרפים לפי תכונות
+      const traitChartsDiv = document.getElementById('traitChartsContainer');
+      traitChartsDiv.innerHTML = '';
+      traits.forEach((trait, j) => {
+        const traitData = scoresMatrix.map(item => ({
+          leader: item.leader,
+          score: item.rowScores[j]
+        })).sort((a, b) => b.score - a.score);
+
+        const canvas = document.createElement('canvas');
+        canvas.height = 100;
+        traitChartsDiv.appendChild(document.createElement('hr'));
+        traitChartsDiv.appendChild(document.createTextNode(trait));
+        traitChartsDiv.appendChild(canvas);
+
+        new Chart(canvas.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: traitData.map(d => d.leader),
+            datasets: [{
+              label: trait,
+              data: traitData.map(d => d.score),
+              backgroundColor: 'rgba(255, 159, 64, 0.6)',
+              borderColor: 'rgba(255, 159, 64, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            scales: {
+              x: {
+                min: 0,
+                max: 10
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              }
+            }
+          }
+        });
+      });
     }
 
     function exportAsImage() {
@@ -219,5 +286,6 @@
       });
     }
   </script>
+
 </body>
 </html>
