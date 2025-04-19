@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>מנהיגים ותכונות</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      padding: 30px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    .step {
+      display: none;
+    }
+    .step.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    input[type="number"] {
+      text-align: center;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      text-align: center;
+      padding: 8px;
+    }
+    td.invalid {
+      background-color: #ffdddd;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>מנהיגים ותכונות</h2>
+
+  <!-- שלב 1 -->
+  <div id="step1" class="step active">
+    <h3>שלב 1: אנא בחר את 5 האנשים שהיית רוצה לראות בהנהגה הפוליטית</h3>
+    <div id="leaderInputs">
+      <div class="form-group"><input type="text" placeholder="שם 1" required></div>
+      <div class="form-group"><input type="text" placeholder="שם 2" required></div>
+      <div class="form-group"><input type="text" placeholder="שם 3" required></div>
+      <div class="form-group"><input type="text" placeholder="שם 4" required></div>
+      <div class="form-group"><input type="text" placeholder="שם 5" required></div>
+    </div>
+    <button onclick="goToStep2()">המשך לשלב הבא</button>
+  </div>
+
+  <!-- שלב 2 -->
+  <div id="step2" class="step">
+    <h3>שלב 2: אנא ציין 5 תכונות חשובות במיוחד למנהיגות הבאה</h3>
+    <div id="traitInputs">
+      <div class="form-group"><input type="text" placeholder="תכונה 1" required></div>
+      <div class="form-group"><input type="text" placeholder="תכונה 2" required></div>
+      <div class="form-group"><input type="text" placeholder="תכונה 3" required></div>
+      <div class="form-group"><input type="text" placeholder="תכונה 4" required></div>
+      <div class="form-group"><input type="text" placeholder="תכונה 5" required></div>
+    </div>
+    <button onclick="goToStep3()">המשך לדירוג</button>
+  </div>
+
+  <!-- שלב 3 -->
+  <div id="step3" class="step">
+    <h3>שלב 3: דרג כל מנהיג לפי כל אחת מהתכונות מ-1 עד 10</h3>
+    <div id="ratingTableContainer"></div>
+    <button onclick="showSummary()">סיום והצג סיכום</button>
+  </div>
+
+  <!-- שלב 4 -->
+  <div id="step4" class="step">
+    <h3>סיכום הדירוגים שלך</h3>
+    <div id="summary"></div>
+    <button onclick="exportAsImage()">שמור כתמונה</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    let leaders = [];
+    let traits = [];
+
+    function showStep(num) {
+      document.querySelectorAll('.step').forEach((el, i) => {
+        el.classList.toggle('active', i === num - 1);
+      });
+    }
+
+    function goToStep2() {
+      const inputs = document.querySelectorAll('#leaderInputs input');
+      leaders = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+      if (leaders.length !== 5) {
+        alert("נא להזין בדיוק 5 שמות.");
+        return;
+      }
+      showStep(2);
+    }
+
+    function goToStep3() {
+      const inputs = document.querySelectorAll('#traitInputs input');
+      traits = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+      if (traits.length !== 5) {
+        alert("נא להזין בדיוק 5 תכונות.");
+        return;
+      }
+
+      const container = document.getElementById('ratingTableContainer');
+      let table = `<table><thead><tr><th>שם \\ תכונה</th>`;
+      traits.forEach(trait => table += `<th>${trait}</th>`);
+      table += `</tr></thead><tbody>`;
+      leaders.forEach((leader, i) => {
+        table += `<tr><td>${leader}</td>`;
+        traits.forEach(() => {
+          table += `<td><input type="number" min="1" max="10" required style="width: 60px;"></td>`;
+        });
+        table += `</tr>`;
+      });
+      table += `</tbody></table>`;
+      container.innerHTML = table;
+
+      showStep(3);
+    }
+
+    function showSummary() {
+      const inputs = document.querySelectorAll('#ratingTableContainer input');
+      const values = Array.from(inputs).map(input => parseFloat(input.value.trim()));
+      let hasError = false;
+
+      // ניקוי שגיאות קודמות
+      inputs.forEach(input => input.classList.remove('invalid'));
+
+      values.forEach((val, i) => {
+        if (isNaN(val) || val < 1 || val > 10) {
+          inputs[i].classList.add('invalid');
+          hasError = true;
+        }
+      });
+
+      if (hasError) {
+        alert("יש להזין רק ציונים מספריים בין 1 ל-10.");
+        return;
+      }
+
+      // בניית טבלת סיכום עם ממוצעים
+      let summaryHTML = `<table><thead><tr><th>שם \\ תכונה</th>`;
+      traits.forEach(trait => summaryHTML += `<th>${trait}</th>`);
+      summaryHTML += `<th>ממוצע</th></tr></thead><tbody>`;
+
+      const scoresMatrix = [];
+
+      leaders.forEach((leader, i) => {
+        let rowHTML = `<tr><td>${leader}</td>`;
+        const rowScores = [];
+        for (let j = 0; j < traits.length; j++) {
+          const idx = i * traits.length + j;
+          const val = parseFloat(inputs[idx].value.trim());
+          rowScores.push(val);
+          rowHTML += `<td>${val}</td>`;
+        }
+        const avg = (rowScores.reduce((a, b) => a + b, 0) / rowScores.length).toFixed(2);
+        rowHTML += `<td><strong>${avg}</strong></td></tr>`;
+        summaryHTML += rowHTML;
+        scoresMatrix.push({ leader, rowScores, avg: parseFloat(avg) });
+      });
+
+      summaryHTML += `</tbody></table>`;
+
+      // טבלת דירוג לפי תכונות
+      summaryHTML += `<h4>דירוג מנהיגים לפי תכונות:</h4>`;
+      traits.forEach((trait, j) => {
+        const rankings = leaders.map((leader, i) => ({
+          leader,
+          score: scoresMatrix[i].rowScores[j]
+        })).sort((a, b) => b.score - a.score);
+
+        summaryHTML += `<strong>${trait}</strong><ol>`;
+        rankings.forEach(item => {
+          summaryHTML += `<li>${item.leader} — ציון: ${item.score}</li>`;
+        });
+        summaryHTML += `</ol>`;
+      });
+
+      document.getElementById('summary').innerHTML = summaryHTML;
+      showStep(4);
+    }
+
+    function exportAsImage() {
+      html2canvas(document.getElementById('summary')).then(canvas => {
+        const img = canvas.toDataURL();
+        const link = document.createElement('a');
+        link.download = 'summary.png';
+        link.href = img;
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>
